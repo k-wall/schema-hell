@@ -24,7 +24,9 @@ pip install confluent-kafka six requests jsonschema
 
 ### register the schema
 
+```
 curl  -H 'Accept: application/vnd.schemaregistry.v1+json' 'http://localhost:8080/apis/ccompat/v7/subjects/example_serde_json-value/versions' -H 'Content-Type: application/vnd.schemaregistry.v1+json' -d@<(jq '. | {schema: tojson, schemaType: "JSON"}' < schema.json)
+```
 
 ### running the producer
 
