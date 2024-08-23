@@ -46,15 +46,21 @@ kafka-console-consumer --bootstrap-server localhost:9092  --topic example_serde_
 UseLegacy4ByteIdHandler=true mvn -f consumer/pom.xml compile exec:java
 ```
 
-To put the Apicurio Registry into a mode where it can consume the 4 byte content id
+To put the Apicurio SerDe into a mode where it can consume the 4 byte content id, do this:
+
 
 ```
 UseLegacy4ByteIdHandler=true mvn -f consumer/pom.xml compile exec:java
 ```
 
+This tells the example to override the `IdHandler`.
+https://www.apicur.io/registry/docs/apicurio-registry/2.6.x/getting-started/assembly-configuring-kafka-client-serdes.html#:~:text=headers.enabled.-,ID%20encoding,-You%20can%20customize
+
+
 # Error
 
 This is the error the consumer will show as it mistakenly tries to read magic + 8 bytes from the record value.
+
 
 ```
 org.apache.kafka.common.errors.RecordDeserializationException: Error deserializing key/value for partition example_serde_json-0 at offset 0. If needed, please seek past the record to continue consumption.
