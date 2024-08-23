@@ -35,32 +35,7 @@ import java.util.Collections;
 import java.util.Properties;
 import java.util.UUID;
 
-/**
- * This example demonstrates how to use the Apicurio Registry in a very simple publish/subscribe
- * scenario with JSON as the serialization type (and JSON Schema for validation).  Because JSON
- * Schema is only used for validation (not actual serialization), it can be enabled and disabled
- * without affecting the functionality of the serializers and deserializers.  However, if
- * validation is disabled, then incorrect data could be consumed incorrectly.
- *
- * The following aspects are demonstrated:
- *
- * <ol>
- *   <li>Register the JSON Schema in the registry</li>
- *   <li>Configuring a Kafka Serializer for use with Apicurio Registry</li>
- *   <li>Configuring a Kafka Deserializer for use with Apicurio Registry</li>
- *   <li>Data sent as a MessageBean</li>
- * </ol>
- *
- * Pre-requisites:
- *
- * <ul>
- *   <li>Kafka must be running on localhost:9092</li>
- *   <li>Apicurio Registry must be running on localhost:8080</li>
- * </ul>
- *
- * @author eric.wittmann@gmail.com
- */
-public class Consumer {
+public class MyConsumer {
 
     private static final String REGISTRY_URL = "http://localhost:8080/";
     private static final String SERVERS = "localhost:9092";
@@ -97,7 +72,7 @@ public class Consumer {
 
 
     public static void main(String[] args) {
-        System.out.println("Starting example " + Consumer.class.getSimpleName());
+        System.out.println("Starting example " + MyConsumer.class.getSimpleName());
         String topicName = TOPIC_NAME;
 
         // Register the schema with the registry (only if it is not already registered)
@@ -146,6 +121,11 @@ public class Consumer {
         props.putIfAbsent(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         // Use the Apicurio Registry provided Kafka Deserializer for JSON Schema
         props.putIfAbsent(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonSchemaKafkaDeserializer.class.getName());
+
+        var enableConfluentIdHandler = System.getenv().getOrDefault("ENABLE_CONFLUENT_ID_HANDLER", "false");
+        System.out.println("Confluent id handler :" + enableConfluentIdHandler);
+        props.putIfAbsent(SerdeConfig.ENABLE_CONFLUENT_ID_HANDLER, enableConfluentIdHandler);
+
 
         if (Boolean.parseBoolean(System.getenv().getOrDefault("UseLegacy4ByteIdHandler", "false"))) {
             props.putIfAbsent(SerdeConfig.ID_HANDLER, Legacy4ByteIdHandler.class.getName());

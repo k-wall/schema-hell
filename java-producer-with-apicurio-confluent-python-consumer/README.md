@@ -2,8 +2,8 @@
 
 # scenerio
 
-- Confluent Python Producer
-- Java Consumer using Apicurio SerDes
+- Java Producer using Apicurio SerDes
+- Confluent Python Consumer
 
 
 ## setup
@@ -29,41 +29,40 @@ curl  -H 'Accept: application/vnd.schemaregistry.v1+json' 'http://localhost:8080
 ### running the producer
 
 ```
-python producer/json_producer.py -b localhost:9092 -s http://localhost:8080/apis/ccompat/v7
+mvn -f producer/pom.xml compile exec:java
 ```
 
-check the the confluent producer is writing the magic + 4 bytes:
+check the the producer is using headers
 
 ```
-kafka-console-consumer --bootstrap-server localhost:9092  --topic example_serde_json --from-beginning | od -t x1
-
-           vvvvvvvvvvvvvvvvvv
-0000000    00  00  00  00  01  7b  22  6e  61  6d  65  22  3a  20  22  64
-0000020    22  2c  20  22  66  61  76  6f  72  69  74  65  5f  6e  75  6d
+kafka-console-consumer --bootstrap-server localhost:9092  --topic example_serde_json --from-beginning --property print.headers=true
 ```
 
 ### running the consumer
 
 ```
-mvn -f consumer/pom.xml compile exec:java
+consumer consumer/json_consumer.py -b localhost:9092 -s http://localhost:8080/apis/ccompat/v7
 ```
 
-To put the Apicurio SerDe into a mode where it can consume the 4 byte content id, do this:
+to get the Apicurio SerDer to produce records that are acceptable to the consumer, do this:
 
 ```
-ENABLE_CONFLUENT_ID_HANDLER=true mvn -f consumer/pom.xml compile exec:java
+ENABLE_HEADERS=false ENABLE_CONFLUENT_ID_HANDLER=true mvn -f producer/pom.xml compile exec:java
 ```
-
-This tells the example to override the `IdHandler`.
-https://www.apicur.io/registry/docs/apicurio-registry/2.6.x/getting-started/assembly-configuring-kafka-client-serdes.html#:~:text=headers.enabled.-,ID%20encoding,-You%20can%20customize
-
 
 # Error
 
-This is the error the consumer will show as it mistakenly tries to read magic + 8 bytes from the record value.
-
+This is the error the consumer will show as tries to interpret the first 4 bytes of the payload as a contentId.
 
 ```
+Traceback (most recent call last):
+  File "/Users/kwall/src/schema-hell/java-producer-with-apicurio-confluent-python-consumer/consumer/json_consumer.py", line 134, in <module>
+    main(parser.parse_args())
+  File "/Users/kwall/src/schema-hell/java-producer-with-apicurio-confluent-python-consumer/consumer/json_consumer.py", line 108, in main
+    user = json_deserializer(msg.value(), SerializationContext(msg.topic(), MessageField.VALUE))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kwall/src/schema-hell/confluent-python-prod-java-consumer-with-apicurio/kafka-env/lib/python3.12/site-packages/confluent_kafka/schema_registry/json_schema.py", line 366, in __call__
+
 org.apache.kafka.common.errors.RecordDeserializationException: Error deserializing key/value for partition example_serde_json-0 at offset 0. If needed, please seek past the record to continue consumption.
     at org.apache.kafka.clients.consumer.internals.CompletedFetch.parseRecord (CompletedFetch.java:331)
     at org.apache.kafka.clients.consumer.internals.CompletedFetch.fetchRecords (CompletedFetch.java:283)
