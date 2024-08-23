@@ -5,6 +5,7 @@
 - Java Producer using Apicurio SerDes
 - Confluent Python Consumer
 
+TL;DR Apicurio SerDes identifies the schema by headers.  Confluent Python knows nothing about headers so it tries to process the payload bytes as if it were magic + int + payload.
 
 ## setup
 
