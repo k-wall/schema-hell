@@ -6,6 +6,8 @@
 - Java Consumer using Apicurio SerDes
 
 
+TL;DR Confluent producer writes the schema identifier into the payload as magic + 4 bytes.  Apicurio SerDes detects the magic byte, but then reads 8 bytes. 
+
 ## setup
 
 ### server side setup
